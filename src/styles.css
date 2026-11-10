@@ -22,7 +22,7 @@
   --body: 'Atkinson Hyperlegible', system-ui, sans-serif;
 }
 @media (max-width: 500px) {
-  :root { --ph: 100dvh; }
+  :root { --pw: 100vw; --ph: 100dvh; }
 }
 
 * { box-sizing: border-box; }
@@ -263,6 +263,7 @@ button.slot:hover { border-color: var(--basil-2); }
 .nutri dt { font-size: 0.75rem; color: var(--muted); }
 .nutri dd { margin: 0; font: 800 1.05rem var(--display); }
 .src { font-size: 0.82rem; color: var(--muted); }
+.options + .src { margin-top: 12px; }
 .options { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 8px; }
 .option { display: grid; gap: 4px; width: 100%; text-align: left; padding: 12px 14px; border-radius: 16px; border: 2px solid var(--line); background: #fff; }
 .option:hover { border-color: var(--basil-2); }

@@ -21,7 +21,7 @@ const SOURCES = [
 ];
 
 const byId = Object.fromEntries(RECIPES.map((r) => [r.id, r]));
-const state = { profile: null, draft: { ...BLANK }, plan: null, view: 'start', day: 0, sheet: null, checked: new Map() };
+const state = { profile: null, draft: { ...BLANK }, plan: null, view: 'start', day: 0, sheet: null, checked: new Map(), demo: null };
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -55,7 +55,7 @@ function formView() {
   const p = state.draft, first = !state.plan;
   const radios = (name, opts) => Object.entries(opts).map(([v, label]) =>
     `<label class="chip"><input type="radio" name="${name}" value="${v}" ${p[name] === v ? 'checked' : ''}><span>${label}</span></label>`).join('');
-  const demo = (key, icon, blurb) => `<button type="button" class="demo" id="demo-${key}" data-action="demo" data-arg="${key}" aria-pressed="${p.name === DEMOS[key].name}">
+  const demo = (key, icon, blurb) => `<button type="button" class="demo" id="demo-${key}" data-action="demo" data-arg="${key}" aria-pressed="${state.demo === key}">
       <span class="avatar" aria-hidden="true">${icon}</span><span><strong>${DEMOS[key].name}</strong><small>${blurb}</small></span></button>`;
   return `
   ${first
@@ -159,9 +159,9 @@ function detailSheet() {
 
 function keyNutrient(r) {
   const n = r.nutrition, g = state.profile.goal;
-  if (g === 'muscle') return `${n.protein} g protein`;
-  if (g === 'weight-loss') return `${n.calories} cal`;
-  if (g === 'energy') return `${n.carbs} g carbs, ${n.fiber} g fiber`;
+  if (g === 'muscle') return `est. ${n.protein} g protein`;
+  if (g === 'weight-loss') return `est. ${n.calories} cal`;
+  if (g === 'energy') return `est. ${n.carbs} g carbs, ${n.fiber} g fiber`;
   return `${r.foodGroups.length} food groups`;
 }
 
@@ -173,8 +173,9 @@ function swapSheet() {
     <p class="sheet-note">${opts.length} options${safe ? `, all ${safe}` : ''}. Best match for “${GOALS[state.profile.goal]}” first.</p>
     ${opts.length ? `<ul class="options">${opts.map((r) => `<li><button type="button" class="option" data-action="choose" data-arg="${r.id}">
       <span class="option-name">${r.name}</span>
-      <span class="slot-meta"><span>${r.prepMinutes} min</span><span>${money(r.costPerServing)}</span><span class="key">${keyNutrient(r)}</span></span></button></li>`).join('')}</ul>`
-    : `<p>No other ${slot} options fit your profile. Raising your max cook time opens up more.</p>`}
+      <span class="slot-meta"><span>${r.prepMinutes} min</span><span>${money(r.costPerServing)}</span><span class="key">${keyNutrient(r)}</span></span></button></li>`).join('')}</ul>
+    <p class="src">Estimated nutrition per serving, from USDA FoodData Central.</p>`
+    : `<p>No other ${slot} options fit your profile.</p>`}
   </div>`;
 }
 
@@ -188,6 +189,7 @@ function render(focusId) {
 
 function go(view) {
   if (view === 'profile') state.draft = structuredClone(state.profile);
+  state.demo = null;
   state.view = view;
   render();
   $('#screen').scrollTop = 0;
@@ -220,10 +222,11 @@ document.addEventListener('click', (e) => {
   switch (b.dataset.action) {
     case 'demo':
       state.draft = structuredClone(DEMOS[arg]);
+      state.demo = arg;
       render(`demo-${arg}`);
       toast(`${DEMOS[arg].name}’s answers are filled in. Check them, then build the week.`);
       break;
-    case 'view': $('#sheet').open && $('#sheet').close(); go(arg); break;
+    case 'view': go(arg); break;
     case 'day': state.day = Number(arg); render(`day-${arg}`); break;
     case 'detail': state.sheet = { day: state.day, slot: arg }; openSheet('detail'); break;
     case 'swap': openSheet('swap'); break;
@@ -234,6 +237,9 @@ document.addEventListener('click', (e) => {
       // Only ids the engine offered for this slot are accepted (keeps the allergen guarantee).
       if (!swapOptions(RECIPES, state.profile, state.plan, day, slot).some((r) => r.id === arg)) return;
       state.plan = applySwap(state.plan, day, slot, arg);
+      // Forget checkmarks for items that left the list, so they don't come back pre-ticked later.
+      const onList = new Set(groceryList(state.plan, RECIPES).flatMap((s) => s.items.map((i) => i.key)));
+      for (const k of state.checked.keys()) if (!onList.has(k)) state.checked.delete(k);
       $('#sheet').close();
       render(`slot-${slot}`);
       toast(`Swapped in ${byId[arg].name}. Grocery list updated.`);
@@ -253,6 +259,13 @@ document.addEventListener('change', (e) => {
   if (!key) return;
   state.checked.set(key, e.target.checked);
   $('#progress').textContent = progress(groceryList(state.plan, RECIPES).flatMap((s) => s.items));
+});
+
+// Editing any answer means the form no longer matches the demo profile that was loaded.
+document.addEventListener('input', (e) => {
+  if (!state.demo || e.target.form?.id !== 'profile-form') return;
+  state.demo = null;
+  for (const b of document.querySelectorAll('.demo')) b.setAttribute('aria-pressed', 'false');
 });
 
 document.addEventListener('submit', (e) => {
