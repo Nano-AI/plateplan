@@ -98,7 +98,7 @@ function slotCard(slot) {
     <span class="slot-icon" aria-hidden="true">${SLOT_ICON[slot]}</span>
     <span class="slot-main"><span class="slot-type">${cap(slot)}${prep ? ' <span class="tag">Batch cook</span>' : ''}</span>
       <span class="slot-name">${r.name}</span>
-      <span class="slot-meta"><span>${r.prepMinutes} min</span><span>${money(r.costPerServing)}</span></span></span>
+      <span class="slot-meta"><span>${r.prepMinutes} min</span><span>est. ${money(r.costPerServing)}</span></span></span>
     <span class="chev" aria-hidden="true">›</span></button></li>`;
 }
 
@@ -145,7 +145,7 @@ function detailSheet() {
   return `<div class="sheet-body">
     <div class="sheet-top"><p class="sheet-where">${DAYS[day]} ${slot}</p><button type="button" class="x" data-action="close" aria-label="Close">✕</button></div>
     <h2 id="sheet-title" tabindex="-1">${r.name}</h2>
-    <ul class="facts"><li><strong>${r.prepMinutes} min</strong>prep and cook</li><li><strong>${money(r.costPerServing)}</strong>per serving</li><li><strong>${r.servings}</strong>${r.servings > 1 ? 'servings' : 'serving'}</li></ul>
+    <ul class="facts"><li><strong>${r.prepMinutes} min</strong>prep and cook</li><li><strong>est. ${money(r.costPerServing)}</strong>per serving</li><li><strong>${r.servings}</strong>${r.servings > 1 ? 'servings' : 'serving'}</li></ul>
     <p class="groups">${r.foodGroups.map((g) => `<span><i style="background:var(--${g})"></i>${cap(g)}</span>`).join('')}</p>
     <h3>Ingredients <small>for the whole recipe</small></h3>
     <ul class="ing">${r.ingredients.map((i) => `<li><span>${qty(i.qty, i.unit)}</span>${i.name}</li>`).join('')}</ul>
@@ -173,7 +173,7 @@ function swapSheet() {
     <p class="sheet-note">${opts.length} options${safe ? `, all ${safe}` : ''}. Best match for “${GOALS[state.profile.goal]}” first.</p>
     ${opts.length ? `<ul class="options">${opts.map((r) => `<li><button type="button" class="option" data-action="choose" data-arg="${r.id}">
       <span class="option-name">${r.name}</span>
-      <span class="slot-meta"><span>${r.prepMinutes} min</span><span>${money(r.costPerServing)}</span><span class="key">${keyNutrient(r)}</span></span></button></li>`).join('')}</ul>
+      <span class="slot-meta"><span>${r.prepMinutes} min</span><span>est. ${money(r.costPerServing)}</span><span class="key">${keyNutrient(r)}</span></span></button></li>`).join('')}</ul>
     <p class="src">Estimated nutrition per serving, from USDA FoodData Central.</p>`
     : `<p>No other ${slot} options fit your profile.</p>`}
   </div>`;

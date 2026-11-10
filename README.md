@@ -37,6 +37,8 @@ Tests for the planning engine: `node --test test/*.mjs`
 7. **Jordan (20 s).** Open **Profile**, tap **Jordan** (dairy-free, $70, 45 min, Sunday meal prep), then **Rebuild my plan**. Lunches and dinners now repeat in "Batch cook" runs, the meals are protein-heavy ($60.80 of $70), and no dairy appears on the grocery list.
 
 Tips:
+- When projecting, zoom the browser to 125–150% so the phone frame is readable from the back of the room.
+- Don't lower Jordan's budget live: the budget step can split his meal-prep runs.
 - Swaps only drop an ingredient when no other meal still uses it. Thursday dinner is the clearest example; swapping a meal whose ingredients appear elsewhere in the week changes quantities but keeps the items.
 - To show the empty-slot cards, set Diet to Vegan and Max cook time to 5: they explain why nothing fits.
 
