@@ -6,6 +6,8 @@ It is a plain static site: `index.html` plus ES modules, with no build step, no 
 
 ## Run it
 
+From the project folder:
+
 ```sh
 python3 -m http.server 8000
 ```
@@ -18,7 +20,7 @@ Tests for the planning engine: `node --test test/*.mjs`
 
 | File | What it is |
 |---|---|
-| `data/recipes.js` | 36 recipes with per-ingredient allergens, cost and estimated nutrition |
+| `data/recipes.js` | 40 recipes with per-ingredient allergens, cost and estimated nutrition |
 | `src/engine.js` | Pure planning logic: eligibility, plan building, swaps, cost, grocery list, MyPlate check |
 | `src/app.js` | The UI: render functions and one delegated event handler |
 | `src/styles.css` | Styles |
@@ -27,12 +29,15 @@ Tests for the planning engine: `node --test test/*.mjs`
 ## 2-minute demo script
 
 1. **Questionnaire (20 s).** Point out the privacy line. Tap **Maya** (vegetarian, $45, 20 min, peanut allergy). The form fills in. Tap **Build my week**.
-2. **Plan (30 s).** Show the budget bar ($45.00 of $45), the little MyPlate plate on each day, and Sunday's note: "4 of 5 MyPlate groups, missing fruits."
-3. **Recipe detail (20 s).** Tap Sunday's breakfast (Tofu Scramble). Show ingredients, steps, time, cost and the **Estimated nutrition** panel with its USDA FoodData Central source line.
-4. **Swap (30 s).** Tap **Swap this meal**. The list says every option is vegetarian and peanut-free. Pick **Overnight Oats with Berries**. The toast confirms, Sunday's plate fills to 5 of 5, and the budget bar moves to $45.30, turning red because it's $0.30 over.
-5. **Grocery list (20 s).** Open **Groceries**: items are merged and grouped by aisle, with "Used in" hints. Milk is now on the list because of the oats. Tick spinach, go back and swap the breakfast again, and spinach stays ticked.
-6. **Jordan (20 s).** Open **Profile**, tap **Jordan** (dairy-free, $70, 45 min, Sunday meal prep), then **Rebuild my plan**. Lunches and dinners now repeat in "Batch cook" runs, the meals are protein-heavy, and no dairy appears on the grocery list.
+2. **Plan (30 s).** Show the budget bar ($44.80 of $45) and the little MyPlate plate on each day: every day of Maya's week fills all five food groups. Tap **Thu**.
+3. **Recipe detail (20 s).** Tap Thursday's dinner (Veggie Pita Pizza). Show ingredients, steps, time, cost and the **Estimated nutrition** panel with its USDA FoodData Central source line.
+4. **Grocery list, before (15 s).** Close the sheet, open **Groceries**: 31 items merged and grouped by aisle, with "Used in" hints. Tick **spinach** and **mozzarella cheese**.
+5. **Swap (25 s).** Back to **Plan**, Thursday dinner, **Swap this meal**. The sheet says every option is vegetarian and free of peanuts, with estimated nutrition. Pick **Veggie Marinara Pasta**. The toast confirms and the budget drops to $44.40.
+6. **Grocery list, after (10 s).** Open **Groceries**: now 29 items. Mozzarella and bell pepper are gone (only the pizza used them), and spinach is still ticked because other meals still need it.
+7. **Jordan (20 s).** Open **Profile**, tap **Jordan** (dairy-free, $70, 45 min, Sunday meal prep), then **Rebuild my plan**. Lunches and dinners now repeat in "Batch cook" runs, the meals are protein-heavy ($60.80 of $70), and no dairy appears on the grocery list.
 
-Optional: set Diet to Vegan and Max cook time to 5 to show the empty-slot cards explaining why nothing fits.
+Tips:
+- Swaps only drop an ingredient when no other meal still uses it. Thursday dinner is the clearest example; swapping a meal whose ingredients appear elsewhere in the week changes quantities but keeps the items.
+- To show the empty-slot cards, set Diet to Vegan and Max cook time to 5: they explain why nothing fits.
 
 Profiles are fictional. Nutrition values are estimates, not medical advice.

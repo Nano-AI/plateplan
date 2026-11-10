@@ -140,6 +140,14 @@ export const RECIPES = [
     [["firm tofu", 1], ["brown rice", 1.5], ["frozen mixed vegetables", 1.5], ["egg", 2], ["soy sauce", 2], ["garlic", 2]],
     ["Use pre-cooked or microwave-pouch rice for speed.", "Fry cubed tofu and garlic until golden, push aside and scramble the eggs.", "Add vegetables, rice and soy sauce; stir-fry 5 minutes."],
     [530, 35, 62, 17, 8]),
+  r("sweet-potato-bean-bowl", "Sweet Potato Black Bean Bowl", "lunch", VV, 15, 2, 2.1, false, ["vegetables", "protein"],
+    [["sweet potato", 2], ["black beans", 1], ["salsa", 0.5], ["avocado", 1], ["cumin", 0.5]],
+    ["Prick sweet potatoes and microwave 8 to 10 minutes until soft.", "Warm beans with cumin.", "Split the potatoes, top with beans, salsa and sliced avocado."],
+    [450, 16, 70, 11, 21]),
+  r("egg-salad-sandwich", "Egg Salad Sandwich", "lunch", V, 15, 2, 1.5, false, ["protein", "grains", "dairy", "vegetables"],
+    [["egg", 4], ["plain greek yogurt", 0.25], ["whole wheat bread", 4], ["spinach", 1]],
+    ["Boil eggs 10 minutes, then cool in cold water and peel.", "Mash with yogurt, salt and pepper.", "Spread on bread with spinach leaves."],
+    [370, 24, 40, 13, 7]),
 
   // ---------- DINNER ----------
   r("veggie-marinara-pasta", "Veggie Marinara Pasta", "dinner", VV, 20, 2, 1.6, false, ["grains", "vegetables"],
@@ -178,6 +186,14 @@ export const RECIPES = [
     [["chicken breast", 1.5], ["peanut butter", 4], ["soy sauce", 3], ["broccoli", 4], ["brown rice", 2], ["garlic", 3]],
     ["Cook rice. Stir-fry sliced chicken and garlic 7 minutes.", "Add broccoli; stir in peanut butter thinned with soy sauce and water.", "Divide over rice. Keeps 4 days."],
     [500, 43, 48, 14, 5]),
+  r("shakshuka-pita", "Shakshuka with Pita", "dinner", V, 20, 2, 2.3, false, ["protein", "vegetables", "grains"],
+    [["egg", 4], ["canned diced tomatoes", 1], ["yellow onion", 1], ["bell pepper", 1], ["garlic", 2], ["cumin", 1], ["olive oil", 1], ["whole wheat pita", 2]],
+    ["Saute chopped onion, pepper and garlic in oil 5 minutes; add cumin.", "Pour in tomatoes and simmer 5 minutes.", "Make 4 wells, crack in the eggs, cover and cook 6 minutes. Serve with warm pita."],
+    [445, 20, 53, 19, 9]),
+  r("broccoli-cheddar-quinoa", "Cheesy Broccoli Quinoa", "dinner", V, 20, 2, 1.8, false, ["grains", "vegetables", "dairy"],
+    [["quinoa", 1], ["broccoli", 2], ["cheddar cheese", 2], ["garlic", 1], ["olive oil", 1]],
+    ["Simmer quinoa in 2 cups water 15 minutes.", "Steam chopped broccoli on top for the last 5 minutes.", "Stir in garlic sauteed in oil and the grated cheddar."],
+    [520, 22, 62, 21, 9]),
 
   // ---------- SNACK ----------
   r("apple-peanut-butter", "Apple with Peanut Butter", "snack", VV, 3, 1, 1.0, false, ["fruits", "protein"],
