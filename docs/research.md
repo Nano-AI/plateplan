@@ -30,6 +30,17 @@ Sources: https://www.mealime.com, https://www.eatthismuch.com, https://www.plant
 4. **Allergen-aware by construction** (FDA): FDA nine, tracked per ingredient.
 5. **Honest nutrition**: values are estimates and cite FoodData Central.
 
+## Image credits
+
+Sample photos for the mock "Snap your fridge" scan, all free to use under the [Unsplash License](https://unsplash.com/license). Stored in `assets/`, resized to 800 px, never hotlinked.
+
+| File | Photo | Photographer | Source |
+|---|---|---|---|
+| `assets/fridge.jpg` | Fridge with fresh fruits and vegetables | Onur Burak Akın | https://unsplash.com/photos/gC-cKJebRhg |
+| `assets/pantry.jpg` | Row of jars of grains and lentils | Steven Ungermann | https://unsplash.com/photos/e6PwBakXOJM |
+| `assets/market.jpg` | Basket of tomatoes and vegetables, Paris farmers market | Anurag Arora | https://unsplash.com/photos/4_TruUQJWnY |
+| `assets/dorm-fridge.jpg` | Refrigerator filled with food containers | Matheus Araujo | https://unsplash.com/photos/tOneNg7t0cM |
+
 ## Design decisions
 
 - **Swapping.** A swap replaces one meal on one day with another recipe of the same meal type. The options come from the same eligibility filter as the plan (diet, allergens, cook time), ranked by the profile's goal, so a swap can never bring in a marked allergen. The app only accepts recipe ids that the swap list offered. The plan is the single source of truth: the cost bar, the per-day MyPlate check and the grocery list are recomputed from it after every swap, so nothing can drift out of sync. Swapping a meal-prep day breaks that day out of its batch run; the rest of the run stays.
@@ -37,3 +48,4 @@ Sources: https://www.mealime.com, https://www.eatthismuch.com, https://www.plant
 - **Allergen safety.** Allergens are tracked per ingredient (FDA nine), and a recipe is excluded if any ingredient carries a marked allergen. The UI repeats this where it matters: the allergy question says no meal or swap will contain them, and the swap sheet states that every option is free of them. When nothing fits a slot, the card names the filter that ruled everything out instead of quietly loosening a safety rule.
 - **Privacy.** No backend, no accounts, no storage: the profile and plan live in page memory and vanish on reload. The demo people are fictional, and the questionnaire says in one line that nothing leaves the browser.
 - **Visual design (AI-assisted).** Designed with Claude's frontend-design skill. Green gingham tablecloth backdrop with a phone frame, basil/celery/yolk palette, Bricolage Grotesque headings and Atkinson Hyperlegible body text (built for legibility). The signature element is a small MyPlate plate on each day that fills in each food group's colour, so the week's balance is visible at a glance. Accessibility basics: real buttons, labels and fieldsets, visible focus rings, a native `<dialog>` for sheets (focus trap and Esc), and reduced motion respected.
+- **Snap your fridge (mock).** The proposal says a plan should use "as much of a plan as the food they have allows", so the questionnaire has an optional fridge photo step. There is no image recognition: each sample photo maps to a preset list of ingredient names from the recipe data, and an uploaded photo gets a preset "typical fridge" list. The screen says so ("Mock scan"), and the chips can be removed or added to match the photo. The uploaded image stays in the browser as an object URL and is never sent anywhere. In the engine, each pantry ingredient a recipe uses lifts its goal score by 10%, which is enough to break near ties without beating a much better match. Allergen, diet and time filtering run first and are unchanged, so a pantry item can never bring in an unsafe recipe. Pantry items show "Have it" on the grocery list and start ticked.

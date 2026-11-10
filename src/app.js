@@ -20,6 +20,16 @@ const SOURCES = [
   ['USDA FoodData Central', 'https://fdc.nal.usda.gov', 'the source of every nutrition estimate'],
 ];
 
+// Mock fridge scan: there is no camera AI. Each photo maps to a preset list of exact recipe ingredient names.
+const SAMPLES = {
+  fridge: { label: 'Fridge', alt: 'Open fridge with peppers, spinach, lettuce, eggs, lemons and apples', pantry: ['egg', 'spinach', 'bell pepper', 'lemon', 'apple', 'tomato'] },
+  pantry: { label: 'Pantry shelf', alt: 'Glass jars of grains, lentils, flour and raisins on a pantry shelf', pantry: ['rolled oats', 'brown rice', 'dry lentils', 'chia seeds', 'black beans', 'chickpeas', 'peanut butter'] },
+  market: { label: 'Farmers-market haul', alt: 'Baskets of tomatoes and fennel at a farmers market', pantry: ['tomato', 'carrot', 'bell pepper', 'broccoli', 'yellow onion', 'sweet potato', 'cucumber', 'spinach'] },
+  'dorm-fridge': { label: 'Dorm fridge', alt: 'Fridge shelves with leftovers in tubs, spreads, sliced cheese and jars', pantry: ['cheddar cheese', 'plain greek yogurt', 'ground turkey', 'salsa', 'whole wheat tortilla', 'egg'] },
+};
+const UPLOAD_PANTRY = ['egg', 'milk', 'spinach', 'bell pepper', 'carrot', 'cheddar cheese', 'plain greek yogurt', 'chicken breast']; // "typical fridge"
+const INGREDIENTS = [...new Set(RECIPES.flatMap((r) => r.ingredients.map((i) => i.name)))].sort();
+
 const byId = Object.fromEntries(RECIPES.map((r) => [r.id, r]));
 const state = { profile: null, draft: { ...BLANK }, plan: null, view: 'start', day: 0, sheet: null, checked: new Map(), demo: null };
 
@@ -48,6 +58,7 @@ function plate(groups, size) {
 function sources() {
   return `<details class="sources"><summary>Sources and notes</summary>
     <ul>${SOURCES.map(([name, url, use]) => `<li><a href="${url}" target="_blank" rel="noopener">${name}</a>: ${use}.</li>`).join('')}</ul>
+    <p>Sample fridge photos from <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a> (free license) by Onur Burak Akın, Steven Ungermann, Anurag Arora and Matheus Araujo.</p>
     <p><strong>Nutrition values are estimates, not medical advice.</strong></p></details>`;
 }
 
@@ -79,10 +90,56 @@ function formView() {
     </div>
     <label class="toggle"><input type="checkbox" role="switch" name="mealPrep" ${p.mealPrep ? 'checked' : ''}>
       <span><strong>I meal-prep on Sundays</strong><small>Lunches and dinners repeat so you can cook them in batches.</small></span></label>
+    <fieldset class="fridge"><legend><span aria-hidden="true">📷</span> Snap your fridge <small>Optional. Meals that use what you already have rank a little higher, and those items start ticked on the grocery list.</small></legend>
+      <div id="fridge-result">${fridgeResult()}</div>
+      <label class="upload"><input type="file" id="fridge-file" accept="image/*" capture="environment"><span aria-hidden="true">📷</span> Upload fridge photo</label>
+      <p class="or">or try a sample photo</p>
+      <div class="samples">${Object.entries(SAMPLES).map(([k, s]) => `<button type="button" class="sample" id="sample-${k}" data-action="sample" data-arg="${k}" aria-pressed="${p.photo === k}">
+        <img src="assets/${k}.jpg" alt="${esc(s.alt)}" width="160" height="107" loading="lazy"><span>${esc(s.label)}</span></button>`).join('')}</div>
+      <p class="privacy"><span aria-hidden="true">🔒</span> Your photo stays on this device. Nothing is uploaded.</p>
+    </fieldset>
     <button type="submit" class="btn primary">${first ? 'Build my week' : 'Rebuild my plan'}</button>
     <p class="privacy"><span aria-hidden="true">🔒</span> Nothing you enter leaves this browser: no account, no server, and the demo people are fictional.</p>
   </form>
   ${sources()}`;
+}
+
+let scanning = false, scanTimer, uploadUrl;
+function fridgeResult() {
+  const { photo, pantry = [] } = state.draft, src = photo === 'upload' ? uploadUrl : photo && `assets/${photo}.jpg`;
+  if (!src) return '';
+  return `<div class="snap${scanning ? ' is-scanning' : ''}"><img src="${esc(src)}" alt="${photo === 'upload' ? 'Your fridge photo' : esc(SAMPLES[photo].alt)}"></div>
+  ${scanning ? '<p class="note">Scanning…</p>' : `
+    ${pantry.length ? `<ul class="pantry" aria-label="Detected ingredients">${pantry.map((n) => `<li><button type="button" class="pchip" data-action="unpantry" data-arg="${esc(n)}" aria-label="Remove ${esc(n)}">${esc(n)} <span aria-hidden="true">✕</span></button></li>`).join('')}</ul>` : '<p class="note">No ingredients kept.</p>'}
+    <select id="pantry-add" aria-label="Add an ingredient"><option value="">+ add item</option>${INGREDIENTS.filter((n) => !pantry.includes(n)).map((n) => `<option>${esc(n)}</option>`).join('')}</select>
+    <p class="note">Mock scan: ingredients are pre-set for this demo. Remove or add items to match your photo.</p>`}`;
+}
+
+function renderFridge(focusId) {
+  const el = $('#fridge-result');
+  if (!el) return;
+  el.innerHTML = fridgeResult();
+  for (const b of document.querySelectorAll('.sample')) b.setAttribute('aria-pressed', b.dataset.arg === state.draft.photo);
+  if (focusId) document.getElementById(focusId)?.focus();
+}
+
+// Fake ~1s "scan", then the preset ingredients appear as removable chips.
+function scan(photo, pantry) {
+  const draft = state.draft;
+  Object.assign(draft, { photo, pantry: [] });
+  undemo();
+  clearTimeout(scanTimer);
+  const done = () => {
+    scanning = false;
+    if (state.draft !== draft) return; // a demo profile replaced the answers meanwhile
+    draft.pantry = [...pantry];
+    renderFridge();
+    toast(`Found ${pantry.length} ingredients. Remove any you don’t have.`);
+  };
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return done();
+  scanning = true;
+  renderFridge();
+  scanTimer = setTimeout(done, 1000);
 }
 
 function slotCard(slot) {
@@ -127,7 +184,9 @@ function planView() {
 }
 
 function groceryView() {
-  const list = groceryList(state.plan, RECIPES), items = list.flatMap((s) => s.items);
+  const list = groceryList(state.plan, RECIPES), items = list.flatMap((s) => s.items), have = new Set(state.profile.pantry);
+  // Pantry items start ticked; once the user changes one, their choice sticks.
+  for (const i of items) if (have.has(i.name) && !state.checked.has(i.key)) state.checked.set(i.key, true);
   return `
   <div class="hero small"><h1 tabindex="-1">Groceries</h1><p>The whole week in one trip. Repeated ingredients are combined; round up at the store.</p></div>
   <section class="budget" aria-label="Grocery total"><p>Estimated total <strong>${money(planCost(state.plan, RECIPES))}</strong></p>
@@ -135,7 +194,7 @@ function groceryView() {
   ${list.map((s) => `<section class="aisle" aria-labelledby="sec-${s.section.replace(/\W/g, '')}">
     <h2 id="sec-${s.section.replace(/\W/g, '')}"><span aria-hidden="true">${SECTION_ICON[s.section]}</span> ${s.section}</h2>
     <ul>${s.items.map((i) => `<li><label class="item"><input type="checkbox" data-key="${esc(i.key)}" ${state.checked.get(i.key) ? 'checked' : ''}>
-      <span class="item-name">${i.name}</span><span class="item-qty">${qty(i.qty, i.unit)}</span>
+      <span class="item-name">${i.name}${have.has(i.name) ? '<span class="tag">Have it</span>' : ''}</span><span class="item-qty">${qty(i.qty, i.unit)}</span>
       <span class="item-used">Used in ${i.usedIn.join(', ')}</span></label></li>`).join('')}</ul></section>`).join('')}`;
 }
 const progress = (items) => `${items.filter((i) => state.checked.get(i.key)).length} of ${items.length} items in your cart`;
@@ -226,6 +285,16 @@ document.addEventListener('click', (e) => {
       render(`demo-${arg}`);
       toast(`${DEMOS[arg].name}’s answers are filled in. Check them, then build the week.`);
       break;
+    case 'sample': scan(arg, SAMPLES[arg].pantry); break;
+    case 'unpantry': {
+      const pantry = state.draft.pantry, i = pantry.indexOf(arg);
+      pantry.splice(i, 1);
+      undemo();
+      renderFridge();
+      const chips = document.querySelectorAll('.pchip');
+      (chips[i] || chips[i - 1] || $('#pantry-add')).focus();
+      break;
+    }
     case 'view': go(arg); break;
     case 'day': state.day = Number(arg); render(`day-${arg}`); break;
     case 'detail': state.sheet = { day: state.day, slot: arg }; openSheet('detail'); break;
@@ -255,6 +324,18 @@ $('#sheet').addEventListener('close', () => {
 });
 
 document.addEventListener('change', (e) => {
+  if (e.target.id === 'fridge-file') {
+    const file = e.target.files[0];
+    e.target.value = ''; // so picking the same file again still fires change
+    if (!file?.type.startsWith('image/')) return file && toast('That file isn’t an image. Try a photo.');
+    if (uploadUrl) URL.revokeObjectURL(uploadUrl);
+    uploadUrl = URL.createObjectURL(file); // stays in this browser; nothing is sent anywhere
+    return scan('upload', UPLOAD_PANTRY);
+  }
+  if (e.target.id === 'pantry-add') {
+    if (e.target.value) state.draft.pantry.push(e.target.value);
+    return renderFridge('pantry-add');
+  }
   const key = e.target.dataset?.key;
   if (!key) return;
   state.checked.set(key, e.target.checked);
@@ -262,10 +343,12 @@ document.addEventListener('change', (e) => {
 });
 
 // Editing any answer means the form no longer matches the demo profile that was loaded.
-document.addEventListener('input', (e) => {
-  if (!state.demo || e.target.form?.id !== 'profile-form') return;
+function undemo() {
   state.demo = null;
   for (const b of document.querySelectorAll('.demo')) b.setAttribute('aria-pressed', 'false');
+}
+document.addEventListener('input', (e) => {
+  if (state.demo && e.target.form?.id === 'profile-form') undemo();
 });
 
 document.addEventListener('submit', (e) => {
@@ -274,6 +357,7 @@ document.addEventListener('submit', (e) => {
   state.profile = {
     name: f.get('name').trim(), goal: f.get('goal'), diet: f.get('diet'), allergens: f.getAll('allergens'),
     budget: Number(f.get('budget')), maxMinutes: Number(f.get('maxMinutes')), mealPrep: f.has('mealPrep'),
+    photo: state.draft.photo ?? null, pantry: [...(state.draft.pantry ?? [])],
   };
   state.plan = buildPlan(RECIPES, state.profile);
   state.checked = new Map();

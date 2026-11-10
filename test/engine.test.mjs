@@ -201,3 +201,32 @@ test('buildPlan is deterministic', () => {
   const p = profile({ goal: 'muscle', mealPrep: true, budget: 20 });
   assert.deepEqual(buildPlan(BASE, p), buildPlan(BASE, p));
 });
+
+test('pantry: a modest bonus for recipes using pantry ingredients changes ranking in buildPlan and swapOptions', () => {
+  const plain = r('a-plain', 'breakfast', { nutrition: { calories: 400, protein: 21, carbs: 50, fat: 10, fiber: 5 } });
+  const usesPantry = r('b-banana', 'breakfast', { nutrition: { calories: 400, protein: 20, carbs: 50, fat: 10, fiber: 5 },
+    ingredients: [ing('rolled oats', 0.5, 'cup', 'Pantry'), ing('banana', 1, 'whole', 'Produce')] });
+  const strong = r('c-strong', 'breakfast', { nutrition: { calories: 400, protein: 40, carbs: 50, fat: 10, fiber: 5 } });
+  const rs = [plain, usesPantry];
+  assert.equal(buildPlan(rs, profile({ goal: 'muscle' })).days[0].meals.breakfast, 'a-plain');
+  const p = profile({ goal: 'muscle', pantry: ['banana'] });
+  const plan = buildPlan(rs, p);
+  assert.equal(plan.days[0].meals.breakfast, 'b-banana');
+  const all = [...rs, strong];
+  const opts = (pr) => swapOptions(all, pr, mkPlan([{ breakfast: 'x' }]), 0, 'breakfast').map((x) => x.id);
+  assert.deepEqual(opts(profile({ goal: 'muscle' })), ['c-strong', 'a-plain', 'b-banana']);
+  // Modest: the pantry recipe moves past a near tie, not past a much better match.
+  assert.deepEqual(opts(p), ['c-strong', 'b-banana', 'a-plain']);
+  assert.deepEqual(opts(profile({ goal: 'muscle', pantry: [] })), opts(profile({ goal: 'muscle' })));
+});
+
+test('pantry: never makes an ineligible recipe eligible (allergens, diet)', () => {
+  const p = profile({ allergens: ['peanuts'], diet: 'vegetarian', pantry: ['peanut butter', 'bread', 'chicken breast'] });
+  const plan = buildPlan(BASE, p);
+  assert.ok(!allIds(plan).includes('pb-toast'));
+  assert.ok(!allIds(plan).includes('chicken-bowl'));
+  for (const [i, slot] of [[0, 'breakfast'], [3, 'dinner']]) {
+    const ids = swapOptions(BASE, p, plan, i, slot).map((x) => x.id);
+    assert.ok(!ids.includes('pb-toast') && !ids.includes('chicken-bowl'));
+  }
+});

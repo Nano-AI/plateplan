@@ -20,11 +20,19 @@ function score(recipe, goal) {
   return recipe.foodGroups.length;
 }
 
-// Eligible recipes of one meal type, best goal score first (id breaks ties so output is stable).
+// Pantry bonus: each pantry ingredient a recipe uses lifts its goal score by 10% (of its size, so it
+// scales across goals). Modest on purpose: it breaks near ties, it does not beat a much better match.
+function pantryScore(recipe, profile) {
+  const s = score(recipe, profile.goal), pantry = profile.pantry ?? [];
+  return s + 0.1 * Math.abs(s) * recipe.ingredients.filter((i) => pantry.includes(i.name)).length;
+}
+
+// Eligible recipes of one meal type, best score first (id breaks ties so output is stable).
+// Eligibility (allergens, diet, time) filters first; the pantry only reorders what is left.
 function ranked(recipes, profile, mealType) {
   return recipes
     .filter((r) => r.mealType === mealType && isEligible(r, profile))
-    .sort((a, b) => score(b, profile.goal) - score(a, profile.goal) || a.id.localeCompare(b.id));
+    .sort((a, b) => pantryScore(b, profile) - pantryScore(a, profile) || a.id.localeCompare(b.id));
 }
 
 const capFor = (slot, profile) => (profile.mealPrep && (slot === 'lunch' || slot === 'dinner') ? 4 : 3);

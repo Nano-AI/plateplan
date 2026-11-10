@@ -144,6 +144,37 @@ legend { padding: 0; margin-bottom: 8px; }
 .toggle input:checked::after { transform: translateX(20px); }
 .privacy { font-size: 0.9rem; color: var(--muted); }
 
+/* snap your fridge (mock scan) */
+.fridge { display: grid; gap: 10px; }
+.fridge legend { margin-bottom: 0; }
+#fridge-result:not(:empty) { display: grid; gap: 10px; }
+.snap { position: relative; border-radius: 16px; overflow: hidden; }
+.snap img { display: block; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; }
+.snap.is-scanning::after {
+  content: ''; position: absolute; left: 0; right: 0; top: 0; height: 30%;
+  background: linear-gradient(transparent, rgb(246 194 68 / 0.55), transparent);
+  animation: sweep 1s ease-in-out infinite alternate;
+}
+@keyframes sweep { to { top: 70%; } }
+.pantry { display: flex; flex-wrap: wrap; gap: 6px; padding: 0; margin: 0; list-style: none; }
+.pchip { padding: 6px 12px; border-radius: 999px; border: 2px solid var(--leaf); background: var(--celery); }
+.pchip:hover { border-color: var(--radish); }
+.pchip span { color: var(--radish); }
+#pantry-add { justify-self: start; min-height: 40px; padding: 0 10px; border: 2px dashed var(--line); border-radius: 999px; background: #fff; font: inherit; }
+.upload {
+  display: flex; justify-content: center; align-items: center; gap: 8px; min-height: 52px; border-radius: 14px;
+  border: 2px solid var(--basil); color: var(--basil); background: #fff; font: 700 1.05rem var(--display); cursor: pointer;
+}
+.upload:hover { background: var(--celery); }
+.upload input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.upload:focus-within { outline: 3px solid var(--basil); outline-offset: 2px; }
+.or { text-align: center; font-size: 0.9rem; color: var(--muted); }
+.samples { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sample { display: grid; gap: 4px; padding: 4px 4px 6px; border: 2px solid var(--line); border-radius: 14px; background: #fff; font-size: 0.88rem; font-weight: 700; }
+.sample img { width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 10px; }
+.sample:hover { border-color: var(--basil-2); }
+.sample[aria-pressed='true'] { border-color: var(--basil); background: var(--celery); }
+
 .sources { border-top: 2px dashed var(--line); padding-top: 14px; font-size: 0.92rem; }
 .sources summary { font-weight: 700; cursor: pointer; color: var(--basil); }
 .sources ul { padding-left: 18px; margin: 10px 0; }
