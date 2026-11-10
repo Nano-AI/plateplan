@@ -92,7 +92,7 @@ function formView() {
       <span><strong>I meal-prep on Sundays</strong><small>Lunches and dinners repeat so you can cook them in batches.</small></span></label>
     <fieldset class="fridge"><legend><span aria-hidden="true">📷</span> Snap your fridge <small>Optional. Meals that use what you already have rank a little higher, and those items start ticked on the grocery list.</small></legend>
       <div id="fridge-result">${fridgeResult()}</div>
-      <label class="upload"><input type="file" id="fridge-file" accept="image/*" capture="environment"><span aria-hidden="true">📷</span> Upload fridge photo</label>
+      <label class="upload"><input type="file" id="fridge-file" accept="image/*"><span aria-hidden="true">📷</span> Upload fridge photo</label>
       <p class="or">or try a sample photo</p>
       <div class="samples">${Object.entries(SAMPLES).map(([k, s]) => `<button type="button" class="sample" id="sample-${k}" data-action="sample" data-arg="${k}" aria-pressed="${p.photo === k}">
         <img src="assets/${k}.jpg" alt="${esc(s.alt)}" width="160" height="107" loading="lazy"><span>${esc(s.label)}</span></button>`).join('')}</div>
@@ -288,6 +288,7 @@ document.addEventListener('click', (e) => {
     case 'sample': scan(arg, SAMPLES[arg].pantry); break;
     case 'unpantry': {
       const pantry = state.draft.pantry, i = pantry.indexOf(arg);
+      if (i < 0) return;
       pantry.splice(i, 1);
       undemo();
       renderFridge();
